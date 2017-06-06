@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Class for parsing dump of StackOverflow usage: java -jar SOParser input.xml output.xml termcutoff
+ */
 public class SOParser {
 
     private final static String POST_TAG = "row";
