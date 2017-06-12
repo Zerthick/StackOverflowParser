@@ -1,7 +1,10 @@
 package io.github.vcuswimlab;
 
+import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter;
+
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
+import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.*;
@@ -35,14 +38,18 @@ public class SOParser {
             try {
                 XMLEventReader eventReader = inputFactory.createXMLEventReader(new FileReader(args[0]));
 
-                System.out.println("Indexing Terms...");
+                System.out.println("Indexing Tags...");
                 while (eventReader.hasNext()) {
                     XMLEvent event = eventReader.nextEvent();
 
                     if(event.getEventType() == XMLStreamConstants.START_ELEMENT) {
                         StartElement startElement = event.asStartElement();
                         if(startElement.getName().getLocalPart().equals(POST_TAG)) {
-                            processPost(startElement.getAttributeByName(QName.valueOf("Body")).getValue());
+                            Attribute tags = startElement.getAttributeByName(QName.valueOf("Tags"));
+                            if(tags != null) {
+                                processPost(tags.getValue());
+                            }
+                            docCount++;
                         }
                     }
                 }
@@ -52,22 +59,21 @@ public class SOParser {
 
             XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
             try {
-                XMLStreamWriter streamWriter = outputFactory.createXMLStreamWriter(new FileWriter(args[1]));
+                XMLStreamWriter streamWriter = new IndentingXMLStreamWriter(outputFactory.createXMLStreamWriter(new FileWriter(args[1])));
 
                 System.out.println("Writing Output Stats...");
                 streamWriter.writeStartDocument();
 
                 streamWriter.writeStartElement("Collection");
-                streamWriter.writeAttribute("termCount", String.valueOf(collectionTfMap.size()));
+                streamWriter.writeAttribute("tagCount", String.valueOf(collectionTfMap.size()));
                 streamWriter.writeAttribute("docCount", String.valueOf(docCount));
-
-                streamWriter.writeStartElement("Terms");
+                streamWriter.writeStartElement("Tags");
                 collectionTfMap.entrySet().stream()
                         .filter(e -> e.getValue() > Long.valueOf(args[2])).forEach(e -> {
                             double idf = Math.log10( (double) docCount / collectionDfMap.get(e.getKey()));
                             double ictf = Math.log10( (double) collectionTfMap.size() / e.getValue());
                     try {
-                        streamWriter.writeStartElement("Term");
+                        streamWriter.writeStartElement("Tag");
                         streamWriter.writeAttribute("name", e.getKey());
                         streamWriter.writeAttribute("ctf", String.valueOf(e.getValue()));
                         streamWriter.writeAttribute("df", String.valueOf(collectionDfMap.get(e.getKey())));
@@ -97,12 +103,8 @@ public class SOParser {
     }
 
 
-    private static Pattern pattern = Pattern.compile("\\b[a-z]+.*?\\b");
+    private static Pattern pattern = Pattern.compile("<(.+?)>");
     private static void processPost(String post) {
-
-        post = post.toLowerCase();
-        post = post.replaceAll("\\s+", " ");
-        post = post.replaceAll("(<.*?>|['\"])", "");
 
         Map<String,Long> tfMap = new HashMap<>();
 
@@ -110,21 +112,15 @@ public class SOParser {
         while (matcher.find()) {
 
 
-            String term = matcher.group();
+            String tag = matcher.group(1);
 
-            if(term.length() > 2) {
-                tfMap.put(term, 1L + tfMap.getOrDefault(term, 0L));
-            }
+            tfMap.put(tag, 1L + tfMap.getOrDefault(tag, 0L));
         }
 
-        tfMap.entrySet().forEach(stringLongEntry -> {
-
-            String key = stringLongEntry.getKey();
-            long value = stringLongEntry.getValue();
+        tfMap.forEach((key, value) -> {
 
             collectionTfMap.put(key, collectionTfMap.getOrDefault(key, 0L) + value);
             collectionDfMap.put(key, collectionDfMap.getOrDefault(key, 0L) + 1);
         });
-        docCount++;
     }
 }
