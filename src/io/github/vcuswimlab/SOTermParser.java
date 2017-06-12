@@ -13,9 +13,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Class for parsing dump of StackOverflow usage: java -jar SOParser input.xml output.xml termcutoff
+ * Class for parsing dump of StackOverflow usage: java -jar SOTermParser input.xml output.xml termcutoff
  */
-public class SOParser {
+public class SOTermParser {
 
     private final static String POST_TAG = "row";
     private static Map<String, Long> collectionTfMap;
@@ -93,7 +93,7 @@ public class SOParser {
             }
         } else {
             System.out.println("Incorrect number of arguments! \n" +
-                    "Correct Syntax: SOParser <input_file.xml> <output_file.xml> <cutoff>");
+                    "Correct Syntax: SOTermParser <input_file.xml> <output_file.xml> <cutoff>");
         }
 
         System.clearProperty(ENTITY_SIZE_LIMIT_PROPERTY);
