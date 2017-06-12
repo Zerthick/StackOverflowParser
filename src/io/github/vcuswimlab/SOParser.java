@@ -1,5 +1,7 @@
 package io.github.vcuswimlab;
 
+import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter;
+
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.StartElement;
@@ -43,6 +45,7 @@ public class SOParser {
                         StartElement startElement = event.asStartElement();
                         if(startElement.getName().getLocalPart().equals(POST_TAG)) {
                             processPost(startElement.getAttributeByName(QName.valueOf("Body")).getValue());
+                            docCount++;
                         }
                     }
                 }
@@ -52,7 +55,7 @@ public class SOParser {
 
             XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
             try {
-                XMLStreamWriter streamWriter = outputFactory.createXMLStreamWriter(new FileWriter(args[1]));
+                XMLStreamWriter streamWriter = new IndentingXMLStreamWriter(outputFactory.createXMLStreamWriter(new FileWriter(args[1])));
 
                 System.out.println("Writing Output Stats...");
                 streamWriter.writeStartDocument();
@@ -125,6 +128,5 @@ public class SOParser {
             collectionTfMap.put(key, collectionTfMap.getOrDefault(key, 0L) + value);
             collectionDfMap.put(key, collectionDfMap.getOrDefault(key, 0L) + 1);
         });
-        docCount++;
     }
 }
