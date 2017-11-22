@@ -26,6 +26,8 @@ public class SOTermParser {
 
     public static void main(String[] args) {
 
+        Long startTime = System.currentTimeMillis();
+
         System.setProperty(ENTITY_SIZE_LIMIT_PROPERTY, String.valueOf(Integer.MAX_VALUE));
 
         collectionTfMap = new HashMap<>();
@@ -97,6 +99,10 @@ public class SOTermParser {
         }
 
         System.clearProperty(ENTITY_SIZE_LIMIT_PROPERTY);
+
+        long endTime = System.currentTimeMillis();
+
+        System.out.println("Total Runtime: " + (endTime - startTime));
     }
 
 
